@@ -5,7 +5,6 @@ import streamlit as st
 import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
-import json
 
 # Sample data (Hours, Marks)
 data = {
@@ -30,7 +29,7 @@ def predict_marks(hours):
 
 # MongoDB connection setup
 try:
-    client = MongoClient("mongodb+srv://viswa:6374353499@cluster0.zrpec.mongodb.net/")
+    client = MongoClient("mongodb://localhost:27017/")  # Local MongoDB server
     db = client["student_db"]  # Database name
     collection = db["marks_predictions"]  # Collection name
     st.success("Connected to MongoDB successfully")
@@ -82,9 +81,9 @@ if student_name and course:
 
     try:
         collection.insert_one(record)  # Insert record into MongoDB
-        st.success("Record inserted into MongoDB successfully!")
+        st.success(f"Prediction data for {student_name} saved to MongoDB successfully.")
     except Exception as e:
-        st.error(f"Error inserting record into MongoDB: {e}")
+        st.error(f"Error saving data to MongoDB: {e}")
 
     # Display results
     st.write(f"\nPrediction for **{student_name}** ({course}):")
