@@ -29,9 +29,13 @@ def predict_marks(hours):
     return model.predict(np.array([[hours]]))[0]
 
 # MongoDB connection setup
-client = MongoClient("mongodb+srv://viswa:6374353499@cluster0.zrpec.mongodb.net/")  # Replace with your MongoDB connection string
-db = client["student_db"]  # Database name
-collection = db["marks_predictions"]  # Collection name
+try:
+    client = MongoClient("mongodb+srv://viswa:6374353499@cluster0.zrpec.mongodb.net/")
+    db = client["student_db"]  # Database name
+    collection = db["marks_predictions"]  # Collection name
+    st.success("Connected to MongoDB successfully")
+except Exception as e:
+    st.error(f"Error connecting to MongoDB: {e}")
 
 # Streamlit App
 st.title("Student Marks Prediction Based on Study Hours")
@@ -75,7 +79,12 @@ if student_name and course:
             }
         }
     }
-    collection.insert_one(record)  # Insert record into MongoDB
+
+    try:
+        collection.insert_one(record)  # Insert record into MongoDB
+        st.success("Record inserted into MongoDB successfully!")
+    except Exception as e:
+        st.error(f"Error inserting record into MongoDB: {e}")
 
     # Display results
     st.write(f"\nPrediction for **{student_name}** ({course}):")
