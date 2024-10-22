@@ -4,6 +4,8 @@ import numpy as np
 import streamlit as st
 import plotly.graph_objs as go
 import matplotlib.pyplot as plt
+from pymongo import MongoClient
+import json
 
 # Sample data (Hours, Marks)
 data = {
@@ -26,6 +28,11 @@ model.fit(X, y)
 def predict_marks(hours):
     return model.predict(np.array([[hours]]))[0]
 
+# MongoDB connection setup
+client = MongoClient("mongodb+srv://viswa:6374353499@cluster0.zrpec.mongodb.net/")  # Replace with your MongoDB connection string
+db = client["student_db"]  # Database name
+collection = db["marks_predictions"]  # Collection name
+
 # Streamlit App
 st.title("Student Marks Prediction Based on Study Hours")
 
@@ -43,11 +50,32 @@ hours_2 = st.slider(f"Select study hours for {subject_2}", 0.0, 12.0, 1.0)
 subject_3 = st.text_input("Enter subject 3 name:", "Subject 3")
 hours_3 = st.slider(f"Select study hours for {subject_3}", 0.0, 12.0, 1.0)
 
-# Predict marks for each subject
+# Predict marks for each subject and store in MongoDB
 if student_name and course:
     marks_1 = predict_marks(hours_1)
     marks_2 = predict_marks(hours_2)
     marks_3 = predict_marks(hours_3)
+
+    # Store prediction data in MongoDB
+    record = {
+        "student_name": student_name,
+        "course": course,
+        "predictions": {
+            subject_1: {
+                "hours": hours_1,
+                "predicted_marks": marks_1
+            },
+            subject_2: {
+                "hours": hours_2,
+                "predicted_marks": marks_2
+            },
+            subject_3: {
+                "hours": hours_3,
+                "predicted_marks": marks_3
+            }
+        }
+    }
+    collection.insert_one(record)  # Insert record into MongoDB
 
     # Display results
     st.write(f"\nPrediction for **{student_name}** ({course}):")
@@ -86,8 +114,6 @@ if student_name and course:
 
     # Matplotlib Scatter Line Plot
     fig2, ax = plt.subplots()
-
-    # Create a scatter line plot for study hours vs predicted marks
     ax.plot([hours_1, hours_2, hours_3], [marks_1, marks_2, marks_3], marker='o', linestyle='-', color='b', label='Predicted Marks')
     ax.scatter([hours_1, hours_2, hours_3], [marks_1, marks_2, marks_3], color='red')  # Add scatter points in red
 
